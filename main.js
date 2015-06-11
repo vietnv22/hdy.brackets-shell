@@ -12,9 +12,26 @@ define(function (require, exports, module) {
         Preferences        = PreferencesManager.getExtensionPrefs("hdy.brackets-shell"),
         $icon               = $("<a class='hdy-shell-icon' href='#'> </a>")
                                 .attr("title", "Shell")
-                                .appendTo($("#main-toolbar .buttons"));
-
-
+                                .appendTo($("#main-toolbar .buttons")),
+		Menus = brackets.getModule( 'command/Menus' ),
+		CommandManager = brackets.getModule( 'command/CommandManager' ),
+		Commands = brackets.getModule( 'command/Commands' ),
+	
+		// Extension basics.
+		COMMAND_ID = 'hdy.brackets-shell.enable',
+		
+		// Get view menu.
+		menu = Menus.getMenu( Menus.AppMenuBar.VIEW_MENU );
+	
+	// Register extension.
+	CommandManager.register( "BracketsShell", COMMAND_ID, toggleShell );
+	
+	// Add command to menu.
+	if ( menu !== undefined ) {
+		menu.addMenuDivider();
+		menu.addMenuItem( COMMAND_ID, 'Ctrl-Alt-Shift-T' );
+	}
+	
     // Default theme if not defined
     if(Preferences.get("dark") === undefined) {
         Preferences.definePreference("dark", "boolean", false);
@@ -38,6 +55,11 @@ define(function (require, exports, module) {
         }
         Preferences.save();
     }
+	
+	function toggleShell() {
+		var commandShell    = require("shellPanel");
+		commandShell.toggle();
+	}
 
     AppInit.appReady(function () {
 
@@ -47,7 +69,7 @@ define(function (require, exports, module) {
         require('./online').init();
 
         ExtensionUtils.loadStyleSheet(module, "styles/shellPanel.css");
-        $icon.on("click", commandShell.toggle);
+        $icon.on("click", toggleShell);
 
         commandShell.hide();
         commandShell.setDirectory(projectWatcher.cleanPath(ProjectManager.getProjectRoot().fullPath));
